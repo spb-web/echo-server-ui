@@ -1,0 +1,16 @@
+.requestWrapper {
+  border: 1px 1px 0 1px solid rgb(73, 72, 62);
+  color: rgba(255,255,255,0.8);
+}
+
+.requestWrapper__head {
+  border-bottom: 1px solid rgb(73, 72, 62);
+  padding: 5px;
+}
+.requestWrapper__head__method {
+  display: inline-block;
+  padding: 2px 5px;
+  margin-right: 5px;
+  border-radius: 4px;
+  background-color: #4a76a8;
+}
