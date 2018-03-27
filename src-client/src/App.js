@@ -2,9 +2,6 @@ import React, { Component } from 'react'
 import AppBar from 'material-ui/AppBar';
 import Toolbar from 'material-ui/Toolbar';
 import Typography from 'material-ui/Typography';
-import Button from 'material-ui/Button';
-import IconButton from 'material-ui/IconButton';
-import MenuIcon from 'material-ui-icons/Menu'
 import CompareArrowsIcon from 'material-ui-icons/CompareArrows'
 import ActionCachedIcon from 'material-ui-icons/Cached'
 
@@ -13,7 +10,7 @@ import './App.css';
 
 class App extends Component {
   componentWillMount() {
-    const socket = new WebSocket(`ws://${window.location.host}/data`)
+    const socket = new WebSocket(`ws://${ window.location.host }/data`)
 
     socket.onopen = () => {
       this.setState({connected: true})
@@ -38,8 +35,30 @@ class App extends Component {
         requests = []
       } = this.state
 
+      const messageData = JSON.parse(event.data)
+
+
+
+
+
+      if (messageData.type === 'request') {
+        // Если получены данные запроса
+        requests.push({
+          request: messageData,
+          id: messageData.id
+        })
+      } else if (messageData.type === 'response') {
+        console.log(requests, messageData)
+
+        // Если получены данные ответа
+        requests.find(req => req.id === messageData.id).response = messageData
+      } else if (messageData.initData) {
+        this.setState({ PROXY: messageData.initData.PROXY })
+      }
+
+
       this.setState({
-        requests: [...requests, JSON.parse(event.data)]
+        requests: [...requests]
       })
     }
 
@@ -55,7 +74,8 @@ class App extends Component {
 
   render() {
     const {
-      requests = []
+      requests = [],
+      PROXY = null
     } = this.state
 
     return (
@@ -67,7 +87,7 @@ class App extends Component {
            </Typography>
            { this.state.connected ? <CompareArrowsIcon/> : <ActionCachedIcon/>}
            <Typography color="inherit">
-             Proxy to:
+             Proxy to: {PROXY && PROXY.PROXY_TO.HOST}
            </Typography>
          </Toolbar>
        </AppBar>

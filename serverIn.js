@@ -1,18 +1,62 @@
+const PROXY = require('./constants/PROXY')
 const express = require('express')
 const app = express()
 var bodyParser = require('body-parser')
+const http = require('http')
+
 const port = 3000
 
-// app.use(bodyParser.json())
-// app.use(bodyParser.json())
-// app.use(bodyParser.json({ type: 'application/*+json' }))
-// //app.use(bodyParser.urlencoded())
-// app.use(bodyParser.text({ type: 'text/html' }))
-// app.use(bodyParser.raw({ type: '*/*' }))
+/**
+ * Тут храним обработчики
+ */
+const requestHandlers = []
+/**
+ * Id запроса
+ */
+let requestCount = 0
 
+
+
+function onRequest(req, res) {
+  let data = ''
+
+  req.reqId = requestCount++
+  req.type = 'request'
+
+  req.on('data', chunk => data += chunk)
+  req.on('end', () => {
+    req.rawBody = data
+    requestHandlers.forEach(requestHandler => requestHandler.requestCallback(req))
+  })
+
+
+
+  console.log('serve: ' + req.url)
+
+  var options = {
+    hostname: PROXY.PROXY_TO.HOST,
+    port: 80,
+    path: req.url,
+    method: 'GET'
+  };
+
+  var proxy = http.request(options, function (proxyRes) {
+    proxyRes.pipe(res, { end: true })
+    proxyRes.reqId = req.reqId
+    proxyRes.type = 'response'
+
+    requestHandlers.forEach(responseHandler => responseHandler.responseCallback(proxyRes))
+  })
+
+  req.pipe(proxy, { end: true })
+}
+
+/**
+ * Запуск сервера
+ */
 exports.start = function () {
   return new Promise(function(resolve, reject) {
-    app.listen(port, err => {
+    http.createServer(onRequest).listen(port, err => {
       if (err) {
         return reject(err)
       }
@@ -24,22 +68,5 @@ exports.start = function () {
 }
 
 exports.onRequest = function(callback) {
-  app.use('/', function(req, res, next) {
-    let data = ''
-
-    req.on('data', function( chunk ) {
-      data += chunk;
-    })
-
-    req.on('end', function() {
-      req.rawBody = data;
-
-      next()
-    })
-  },
-  (request, response) => {
-      callback(request)
-
-      response.send('')
-  })
+  requestHandlers.push(callback)
 }

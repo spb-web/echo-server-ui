@@ -40,12 +40,12 @@ class Row extends Component {
       request
     } = this.props
 
-    const datetimeStr = moment(request.datetime, 'x').format('DD.MM.YYYY HH:mm:ss:SS')
+    const datetimeStr = moment(request.request.datetime, 'x').format('DD.MM.YYYY HH:mm:ss:SS')
 
     return (
       <div className="requestWrapper" >
         <ExpansionPanel style={{background:'rgb(39, 40, 34)'}}>
-          <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
+          <ExpansionPanelSummary expandIcon={<ExpandMoreIcon color={ '#fff' }/>}>
             <div className='requestWrapper__head'>
               <Grid
                 container
@@ -54,8 +54,8 @@ class Row extends Component {
                 justify={'space-between'}
               >
                 <Grid item>
-                  <span className='requestWrapper__head__method'>{ request.method }</span>
-                  <span>{ request.originalUrl }</span>
+                  <span className='requestWrapper__head__method'>{ request.request.method }</span>
+                  <span>{ request.request.originalUrl }</span>
                 </Grid>
                 <Grid item>
                   { datetimeStr }
@@ -81,6 +81,7 @@ class Row extends Component {
               onChangeIndex={this.handleChangeIndex}
             >
               <div>
+                <WiteText>Request</WiteText>
                 <Table>
                   <TableHead adjustForCheckbox={false}>
                     <TableRow>
@@ -90,20 +91,43 @@ class Row extends Component {
                   </TableHead>
                   <TableBody displayRowCheckbox={false}>
                     {
-                      Object.keys(request.headers).map(key => <TableRow>
+                      Object.keys(request.request.headers).map(key => <TableRow>
                           <TableCell><WiteText>{ key }</WiteText></TableCell>
-                          <TableCell><WiteText>{ request.headers[key] }</WiteText></TableCell>
+                          <TableCell><WiteText>{ request.request.headers[key] }</WiteText></TableCell>
                         </TableRow>
                       )
                     }
                   </TableBody>
                 </Table>
 
+                <WiteText>Response</WiteText>
+
+                { request.response ? <Table>
+                  <TableHead adjustForCheckbox={false}>
+                    <TableRow>
+                      <TableCell>Name</TableCell>
+                      <TableCell>Value</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody displayRowCheckbox={false}>
+                    {
+                      Object.keys(request.response.headers).map(key => <TableRow>
+                          <TableCell><WiteText>{ key }</WiteText></TableCell>
+                          <TableCell><WiteText>{ request.response.headers[key] }</WiteText></TableCell>
+                        </TableRow>
+                      )
+                    }
+                  </TableBody>
+                </Table> : 'Нет ответа'
+              }
+
+
+
               </div>
               <div style={styles.slide}>
                 {
-                  request.body ?
-                  <ReactJson src={{body: JSON.parse(request.body)}} theme={'monokai'} collapsed={1} />
+                  request.request.body ?
+                  <ReactJson src={{body: JSON.parse(request.request.body)}} theme={'monokai'} collapsed={1} />
                   :
                   <p>No body</p>
                 }
